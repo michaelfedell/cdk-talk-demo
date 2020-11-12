@@ -19,13 +19,20 @@ class CdkDemoStack(core.Stack):
         super().__init__(scope, id, **kwargs)
 
         bucket = s3.Bucket(self, "cdk-demo-bucket")
+        lambda_role = iam.Role(
+            self, "cdk-demo-role",
+            assumed_by=iam.ServicePrincipal("lambda.amazonaws.com"),
+            managed_policies=[iam.ManagedPolicy.from_aws_managed_policy_name(
+                "service-role/AWSLambdaBasicExecutionRole"
+            )]
+        )
         uploader = lambda_.Function(
             self, "cdk-demo-function",
             code=lambda_.Code.from_asset("./cdk_demo/resources/"),
             handler="upload_file.handler",
             runtime=lambda_.Runtime.PYTHON_3_8,
             timeout=lambda_timeout,
-            role=None
+            role=lambda_role,
         )
         bucket.grant_write(uploader)
         uploader.add_environment("S3_BUCKET_NAME", bucket.bucket_name)

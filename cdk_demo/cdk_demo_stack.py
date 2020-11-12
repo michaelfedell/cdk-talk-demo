@@ -30,3 +30,7 @@ class CdkDemoStack(core.Stack):
         bucket.grant_write(uploader)
         uploader.add_environment("S3_BUCKET_NAME", bucket.bucket_name)
 
+        queue = sqs.Queue(self, "cdk-demo-queue")
+        uploader.add_event_source(
+            source=aws_lambda_event_sources.SqsEventSource(queue)
+        )
